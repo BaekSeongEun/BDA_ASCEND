@@ -134,7 +134,7 @@ class Exp_Informer(Exp_Basic):
             plt.figure(figsize=(30, 20))
 
             for j in range(num_features):
-                file_name = f'/result/comparison{num_epoch}.png'
+                file_name = f'/comparison{num_epoch}.png'
                 plt.subplot(5, 3, j+1)  # 5행 3열의 서브플롯 구성
                 plt.plot(true[:, 0, j], label='True')
                 plt.plot(pred[:, 0, j], label='Pred')
