@@ -114,7 +114,8 @@ class Exp_Informer(Exp_Basic):
     def vali(self, vali_data, vali_loader, criterion):
         self.model.eval()
         total_loss = []
-        folder_path = 'C:/Users/user/Informer2020/check/informer_ETTh1_ftM_sl20_ll20_pl1_dm512_nh8_el2_dl1_df2048_atprob_fc5_ebtimeF_dtTrue_mxTrue_exp_0'
+        folder_path = os.path.join(self.args.checkpoints + '/figure/')
+        num_epoch = self.args.train_epochs
         for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(vali_loader):
             pred, true = self._process_one_batch(
                 vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
@@ -128,9 +129,8 @@ class Exp_Informer(Exp_Basic):
 
             plt.figure(figsize=(30, 20))
 
-            
             for j in range(num_features):
-                file_name = f'/result/comparison{j}.png'
+                file_name = f'/result/comparison{num_epoch}.png'
                 plt.subplot(5, 3, j+1)  # 5행 3열의 서브플롯 구성
                 plt.plot(true[:, 0, j], label='True')
                 plt.plot(pred[:, 0, j], label='Pred')
