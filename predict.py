@@ -97,24 +97,28 @@ setting = '{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_at{}_fc{}_eb{}_dt{
 exp = Exp(args)
 
 print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-exp.predict_features(setting)
 
+preds, trues = exp.predict_features(setting)
+
+
+# true를 (628, 7) 형태의 numpy array로 변환
+# true_array = np.array([t.reshape(7) for t in trues])
+
+# # pred를 (628, 7) 형태로 변환
+# pred_reshaped = preds.reshape(628, 7)
+
+# # Plotting
 # plt.figure(figsize=(15, 10))
 
 # # 각 feature에 대한 plot
-# for i in range(1, 8):
-#     plt.subplot(3, 3, i)
-#     plt.plot(true['x_axis'][:628], true.iloc[:628, i], label=f'True Feature {i}')
-#     plt.plot(true['x_axis'][:628], pred_reshaped[:, i-1], label=f'Predicted Feature {i}')
-#     plt.title(f'Feature {i} Comparison')
-#     plt.xlabel('X Axis')
+# for i in range(7):
+#     plt.subplot(3, 3, i+1)
+#     plt.plot(true_array[:, i], label=f'True Feature {i+1}')
+#     plt.plot(pred_reshaped[:, i], label=f'Predicted Feature {i+1}')
+#     plt.title(f'Feature {i+1} Comparison')
+#     plt.xlabel('Samples')
 #     plt.ylabel('Values')
 #     plt.legend()
 
 # plt.tight_layout()
-
-# # 파일로 저장
-# plt.savefig('comparison_plot.png')
-
-# # 화면에 표시
 # plt.show()

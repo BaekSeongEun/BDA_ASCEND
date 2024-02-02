@@ -309,42 +309,23 @@ class Exp_Informer(Exp_Basic):
         self.model.eval()
         
         preds = []
+        trues = []
 
         for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): # batch y는 true값을 얻기 위한 장치임.
             pred, true = self._process_one_batch(
                 pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch_y가 batch_x보다 1개 instance를 더 받을 수 있음.
             pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy() # 값 업데이트
             preds.append(pred.detach().cpu().numpy())
+            trues.append(true.detach().cpu().numpy())
         
         # result save
         folder_path = './results/' + setting +'/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-        # true를 (628, 7) 형태의 numpy array로 변환
-        # true_array = np.array([t.reshape(7) for t in trues])
 
-        # # pred를 (628, 7) 형태로 변환
-        # pred_reshaped = preds.reshape(628, 7)
-
-        # # Plotting
-        # plt.figure(figsize=(15, 10))
-
-        # # 각 feature에 대한 plot
-        # for i in range(7):
-        #     plt.subplot(3, 3, i+1)
-        #     plt.plot(true_array[:, i], label=f'True Feature {i+1}')
-        #     plt.plot(pred_reshaped[:, i], label=f'Predicted Feature {i+1}')
-        #     plt.title(f'Feature {i+1} Comparison')
-        #     plt.xlabel('Samples')
-        #     plt.ylabel('Values')
-        #     plt.legend()
-
-        # plt.tight_layout()
-        # plt.show()
-
-        np.save(folder_path+'real_prediction.npy', preds)
+        # np.save(folder_path+'real_prediction.npy', preds)
         
-        return
+        return preds, true
 
     def _process_one_batch(self, dataset_object, batch_x, batch_y, batch_x_mark, batch_y_mark): # batch_x_mark / y_mark는 해당 batch_x,y의 time-stamp
         batch_x = batch_x.float().to(self.device)
