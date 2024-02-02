@@ -84,6 +84,7 @@ class Dataset_ETT_hour(Dataset):
 
         border1s = [0, df_raw.shape[0]-(self.seq_len*5), df_raw.shape[0] - self.seq_len*2] # size 수정
         border2s = [df_raw.shape[0]-(self.seq_len*4), df_raw.shape[0] - self.seq_len, df_raw.shape[0]] # size 수정 (train, val, test)
+        
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
         
