@@ -126,8 +126,8 @@ class Exp_Informer(Exp_Basic):
             print(true.type)
             total_loss.append(loss)
 
-            true = true.cpu().numpy()
-            pred = pred.cpu().numpy()
+            true = true.detach().cpu().numpy()
+            pred = pred.detach().cpu().numpy()
 
             num_features = true.shape[2]
 
