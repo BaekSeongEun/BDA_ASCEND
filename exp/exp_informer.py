@@ -79,6 +79,8 @@ class Exp_Informer(Exp_Basic):
         elif flag=='pred':
             shuffle_flag = False; drop_last = False; batch_size = 1; freq=args.detail_freq
             Data = Dataset_Pred
+        elif flag=='pred_features':
+            shuffle_flag = False; drop_last = True; batch_size = 1; freq=args.freq ###### batch를 넣어서 볼까?
         else:
             shuffle_flag = True; drop_last = True; batch_size = args.batch_size; freq=args.freq
         data_set = Data(
@@ -100,7 +102,7 @@ class Exp_Informer(Exp_Basic):
             shuffle=shuffle_flag,
             num_workers=args.num_workers,
             drop_last=drop_last)
-
+        
         return data_set, data_loader
 
     def _select_optimizer(self):
@@ -118,7 +120,7 @@ class Exp_Informer(Exp_Basic):
         num_epoch = self.args.train_epochs
         for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(vali_loader):
             pred, true = self._process_one_batch(
-                vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
+                vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch y는 true값을 얻기 위한 장치임.
             loss = criterion(pred.detach().cpu(), true.detach().cpu())
             total_loss.append(loss)
 
@@ -268,7 +270,7 @@ class Exp_Informer(Exp_Basic):
         return
 
     def predict(self, setting, load=False):
-        pred_data, pred_loader = self._get_data(flag='pred')
+        pred_data, pred_loader = self._get_data(flag='test')
         
         if load:
             path = os.path.join(self.args.checkpoints, setting)
@@ -292,6 +294,54 @@ class Exp_Informer(Exp_Basic):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         
+        np.save(folder_path+'real_prediction.npy', preds)
+        
+        return
+
+    def predict_features(self, setting, load=False):
+        pred_data, pred_loader = self._get_data(flag='pred_features')
+        
+        if load:
+            path = os.path.join(self.args.checkpoints, setting)
+            best_model_path = path+'/'+'checkpoint.pth'
+            self.model.load_state_dict(torch.load(best_model_path))
+
+        self.model.eval()
+        
+        preds = []
+
+        for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): # batch y는 true값을 얻기 위한 장치임.
+            pred, true = self._process_one_batch(
+                pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch_y가 batch_x보다 1개 instance를 더 받을 수 있음.
+            pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy() # 값 업데이트
+            preds.append(pred.detach().cpu().numpy())
+        
+        # result save
+        folder_path = './results/' + setting +'/'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        # true를 (628, 7) 형태의 numpy array로 변환
+        # true_array = np.array([t.reshape(7) for t in trues])
+
+        # # pred를 (628, 7) 형태로 변환
+        # pred_reshaped = preds.reshape(628, 7)
+
+        # # Plotting
+        # plt.figure(figsize=(15, 10))
+
+        # # 각 feature에 대한 plot
+        # for i in range(7):
+        #     plt.subplot(3, 3, i+1)
+        #     plt.plot(true_array[:, i], label=f'True Feature {i+1}')
+        #     plt.plot(pred_reshaped[:, i], label=f'Predicted Feature {i+1}')
+        #     plt.title(f'Feature {i+1} Comparison')
+        #     plt.xlabel('Samples')
+        #     plt.ylabel('Values')
+        #     plt.legend()
+
+        # plt.tight_layout()
+        # plt.show()
+
         np.save(folder_path+'real_prediction.npy', preds)
         
         return
@@ -327,76 +377,3 @@ class Exp_Informer(Exp_Basic):
         batch_y = batch_y[:,-self.args.pred_len:,f_dim:].to(self.device) # 평가를 위해서 prediction한 값과 동일한 time-stamp의 값으로 이동
 
         return outputs, batch_y
-
-
-    # ============================================================================임의로 만들어본 함수 =======================================================================
-    def _process_one_batch_prediction(self, dataset_object, batch_x, batch_y, batch_x_mark, batch_y_mark): # batch_x_mark / y_mark는 해당 batch_x,y의 time-stamp
-        batch_x = batch_x.float().to(self.device)
-        batch_y = batch_y.float()
-
-        batch_x_mark = batch_x_mark.float().to(self.device)
-        batch_y_mark = batch_y_mark.float().to(self.device)
-
-        # decoder input 초기화
-        if self.args.padding == 0:
-            dec_inp = torch.zeros([batch_y.shape[0], self.args.pred_len, batch_y.shape[-1]]).float()
-        elif self.args.padding == 1:
-            dec_inp = torch.ones([batch_y.shape[0], self.args.pred_len, batch_y.shape[-1]]).float()
-        dec_inp = torch.cat([batch_y[:, :self.args.label_len, :], dec_inp], dim=1).float().to(self.device)
-
-        # 예측 결과를 저장할 리스트
-        predictions = []
-
-        for _ in range(self.args.seq_len - self.args.label_len):
-            # encoder - decoder 실행
-            if self.args.use_amp:
-                with torch.cuda.amp.autocast():
-                    if self.args.output_attention:
-                        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
-                    else:
-                        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
-            else:
-                if self.args.output_attention:
-                    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
-                else:
-                    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
-
-            # 예측값 저장
-            predictions.append(outputs)
-
-            # 예측값을 다음 입력 시퀀스로 업데이트
-            dec_inp = torch.cat([dec_inp[:, 1:, :], outputs], dim=1)
-
-        # ####### plot 시도 #########
-        # tensors = predictions
-        # single_tensor = batch_y.detach().numpy()
-
-        # # feature별로 플롯
-        # num_features = 14
-        # plt.figure(figsize=(15, 10))
-        # for i in range(num_features):
-        #     plt.subplot(5, 3, i+1)  # 서브플롯 생성
-
-        #     # 각 텐서에서 i번째 feature 플롯
-        #     for tensor in tensors:
-        #         plt.plot(tensor[:, 0, i].detach().numpy(), label=f'Tensor {tensors.index(tensor)}')
-            
-        #     # single_tensor에서 i번째 feature 플롯
-        #     plt.plot(single_tensor[:, :, i].mean(dim=1).numpy(), label='Single Tensor', linewidth=2, color='black')
-
-        #     plt.title(f'Feature {i+1}')
-        #     plt.legend()
-        #     plt.tight_layout()
-
-        # plt.savefig('C:/Users/user/Informer2020/check/informer_ETTh1_ftM_sl40_ll20_pl1_dm512_nh8_el2_dl1_df2048_atprob_fc5_ebtimeF_dtTrue_mxTrue_exp_0/1.png')
-
-        # 마지막 예측값을 사용
-        final_output = predictions[-1]
-
-        if self.args.inverse:
-            final_output = dataset_object.inverse_transform(final_output)
-
-        f_dim = -1 if self.args.features == 'MS' else 0
-        batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-
-        return final_output, batch_y
