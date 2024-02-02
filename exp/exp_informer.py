@@ -121,10 +121,9 @@ class Exp_Informer(Exp_Basic):
                 vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
             loss = criterion(pred.detach().cpu(), true.detach().cpu())
             total_loss.append(loss)
-            plt.figure(figsize=(10, 5))
-            
-            true = true.cpu()
-            pred = pred.cpu()
+
+            true = true.detach().cpu()
+            pred = pred.detach().cpu()
 
             true = true.detach().numpy()
             pred = pred.detach().numpy()
