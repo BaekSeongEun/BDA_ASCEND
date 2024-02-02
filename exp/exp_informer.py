@@ -304,7 +304,11 @@ class Exp_Informer(Exp_Basic):
         if load:
             path = os.path.join(self.args.checkpoints, setting)
             best_model_path = path+'/'+'checkpoint.pth'
+            print(best_model_path)
             self.model.load_state_dict(torch.load(best_model_path))
+
+        print(load)
+        print(self.model)
 
         self.model.eval()
         

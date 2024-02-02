@@ -50,7 +50,7 @@ args.inverse = False # output을 원래 형태로 돌려놓을 것인가? -> Tru
 
 args.batch_size = 1 # prediction할 때, batch_size = 1
 args.learning_rate = 0.0001
-args.loss = 'mse' # feature 예측에는 mse를 사용하는 게 나을려나?
+args.loss = 'mape' # feature 예측에는 mse를 사용하는 게 나을려나?
 args.lradj = 'type1'
 args.use_amp = False # whether to use automatic mixed precision training
 

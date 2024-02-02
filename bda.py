@@ -10,7 +10,7 @@ args.model = 'informer' # model of experiment, options: [informer, informerstack
 
 args.data = 'ETTh1' # data
 args.root_path = 'C:/Users/user/Informer2020/' # root path of data file
-args.data_path = 'Informer_data.csv' # data file
+args.data_path = 'Informer_basic_data.csv' # data file
 args.features = 'M' # forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate
 args.target = 'OT' # target feature in S or MS task
 args.freq = 'h' # freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h
@@ -25,9 +25,9 @@ args.pred_len = 1 # prediction sequence length, 예측하는 길이 / 만약에 
 # Informer decoder input: concat[start token series(label_len), zero padding series(pred_len)]
 # decoder는 output의 결과가 [seq_len - label_len:seq_len + pred_len]으로 나온다.
 
-args.enc_in = 14 # encoder input size
-args.dec_in = 14 # decoder input size
-args.c_out = 14 # output size
+args.enc_in = 7 # encoder input size
+args.dec_in = 7 # decoder input size
+args.c_out = 7 # output size
 args.factor = 5 # probsparse attn factor
 args.d_model = 512 # dimension of model
 args.n_heads = 8 # num of heads
@@ -48,7 +48,7 @@ args.inverse = False # output을 원래 형태로 돌려놓을 것인가? -> Tru
 
 args.batch_size = 16 
 args.learning_rate = 0.0001
-args.loss = 'mse' # feature 예측에는 mse를 사용하는 게 나을려나?
+args.loss = 'mape' # feature 예측에는 mse를 사용하는 게 나을려나?
 args.lradj = 'type1'
 args.use_amp = False # whether to use automatic mixed precision training
 
@@ -74,7 +74,7 @@ if args.use_gpu and args.use_multi_gpu:
 
 # Set augments by using data name
 data_parser = {
-    'ETTh1':{'data':'Informer_data.csv','T':'OT','M':[14,14,14],'S':[1,1,1],'MS':[14,14,1]}
+    'ETTh1':{'data':'Informer_basic_data.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]}
 }
 if args.data in data_parser.keys():
     data_info = data_parser[args.data]
