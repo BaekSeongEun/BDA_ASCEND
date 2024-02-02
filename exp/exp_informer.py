@@ -76,7 +76,7 @@ class Exp_Informer(Exp_Basic):
 
         if flag == 'test':
             shuffle_flag = False; drop_last = True; batch_size = args.batch_size; freq=args.freq
-        elif flag=='pred':
+        elif flag=='pred': # 무조건 MS 방식
             shuffle_flag = False; drop_last = False; batch_size = 1; freq=args.detail_freq
             Data = Dataset_Pred
         elif flag=='pred_features':

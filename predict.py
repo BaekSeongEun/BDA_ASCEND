@@ -101,7 +101,6 @@ print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
 
 preds, trues = exp.predict_features(setting)
 
-
 # true를 (628, 7) 형태의 numpy array로 변환
 # true_array = np.array([t.reshape(7) for t in trues])
 
