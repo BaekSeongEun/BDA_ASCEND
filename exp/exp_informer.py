@@ -130,6 +130,8 @@ class Exp_Informer(Exp_Basic):
             pred = pred.detach().cpu().numpy()
 
             num_features = true.shape[2]
+            print(true.shape)
+            
 
             plt.figure(figsize=(30, 20))
 
