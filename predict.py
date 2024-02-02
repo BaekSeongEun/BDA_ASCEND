@@ -76,7 +76,8 @@ if args.use_gpu and args.use_multi_gpu:
 
 # Set augments by using data name
 data_parser = {
-    'ETTh1':{'data':'Informer_submit_data.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]}
+    'ETTh1':{'data':'Informer_submit_data.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]},
+    'ETTm1':{'data':'Informer_submit_data.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]}
 } # input 수정하기
 
 if args.data in data_parser.keys():

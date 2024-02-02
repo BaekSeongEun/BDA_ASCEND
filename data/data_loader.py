@@ -61,7 +61,6 @@ class Dataset_ETT_hour(Dataset):
 
         if self.scale:
             train_data = df_data[border1s:border2s]
-            print(train_data.values[~np.isnan(train_data.values)])
             self.scaler.fit(train_data.values[~np.isnan(train_data.values)]) # NaN값 제거 해주기 위해 scaler 조정
             data = self.scaler.transform(df_data.values)
         else:
@@ -149,8 +148,8 @@ class Dataset_ETT_minute(Dataset):
             self.label_len = size[1]
             self.pred_len = size[2]
         # init
-        assert flag in ['train', 'test', 'val']
-        type_map = {'train':0, 'val':1, 'test':2}
+        assert flag in ['train', 'test', 'val', 'pred_features']
+        type_map = {'train':0, 'val':1, 'test':2, 'pred_features':3}
         self.set_type = type_map[flag]
         
         self.features = features
@@ -162,15 +161,50 @@ class Dataset_ETT_minute(Dataset):
         
         self.root_path = root_path
         self.data_path = data_path
-        self.__read_data__()
+        if self.set_type ==3:
+            self.__read_data_pred__() # pred_features일 경우, 새롭게 data set을 만들 수 있도록.
+        else:
+            self.__read_data__()
+
+    def __read_data_pred__(self):
+        self.scaler = StandardScaler()
+        df_raw = pd.read_csv(os.path.join(self.root_path,
+                                          self.data_path))
+
+        border1s = 0 # size 수정
+        border2s = df_raw.shape[0] # size 수정 (train, val, test)
+
+        if self.features=='M' or self.features=='MS':
+            cols_data = df_raw.columns[1:]
+            df_data = df_raw[cols_data]
+        elif self.features=='S':
+            df_data = df_raw[[self.target]]
+
+        if self.scale:
+            train_data = df_data[border1s:border2s]
+            self.scaler.fit(train_data.values[~np.isnan(train_data.values)]) # NaN값 제거 해주기 위해 scaler 조정
+            data = self.scaler.transform(df_data.values)
+        else:
+            data = df_data.values
+            
+        df_stamp = df_raw[['date']][border1s:border2s]
+        df_stamp['date'] = pd.to_datetime(df_stamp.date)
+        data_stamp = time_features(df_stamp, timeenc=self.timeenc, freq=self.freq)
+
+        self.data_x = data[border1s:border2s]
+        if self.inverse:
+            self.data_y = df_data.values[border1s:border2s]
+        else:
+            self.data_y = data[border1s:border2s]
+        self.data_stamp = data_stamp
 
     def __read_data__(self):
         self.scaler = StandardScaler()
         df_raw = pd.read_csv(os.path.join(self.root_path,
                                           self.data_path))
 
-        border1s = [0, 12*30*24*4 - self.seq_len, 12*30*24*4+4*30*24*4 - self.seq_len]
-        border2s = [12*30*24*4, 12*30*24*4+4*30*24*4, 12*30*24*4+8*30*24*4]
+        border1s = [0, df_raw.shape[0]-(self.seq_len*5), df_raw.shape[0] - self.seq_len*2] # size 수정
+        border2s = [df_raw.shape[0]-(self.seq_len*4), df_raw.shape[0] - self.seq_len, df_raw.shape[0]] # size 수정 (train, val, test)
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
         
@@ -190,7 +224,7 @@ class Dataset_ETT_minute(Dataset):
         df_stamp = df_raw[['date']][border1:border2]
         df_stamp['date'] = pd.to_datetime(df_stamp.date)
         data_stamp = time_features(df_stamp, timeenc=self.timeenc, freq=self.freq)
-        
+
         self.data_x = data[border1:border2]
         if self.inverse:
             self.data_y = df_data.values[border1:border2]
