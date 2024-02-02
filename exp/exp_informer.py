@@ -122,11 +122,8 @@ class Exp_Informer(Exp_Basic):
             loss = criterion(pred.detach().cpu(), true.detach().cpu())
             total_loss.append(loss)
 
-            true = true.detach().cpu()
-            pred = pred.detach().cpu()
-
-            true = true.detach().numpy()
-            pred = pred.detach().numpy()
+            true.detach().cpu().numpy()
+            pred.detach().cpu().numpy()
 
             num_features = true.shape[2]
 
