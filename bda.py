@@ -25,9 +25,9 @@ args.pred_len = 1 # prediction sequence length, 예측하는 길이 / 만약에 
 # Informer decoder input: concat[start token series(label_len), zero padding series(pred_len)]
 # decoder는 output의 결과가 [seq_len - label_len:seq_len + pred_len]으로 나온다.
 
-args.enc_in = 7 # encoder input size
-args.dec_in = 7 # decoder input size
-args.c_out = 7 # output size
+args.enc_in = 14 # encoder input size
+args.dec_in = 14 # decoder input size
+args.c_out = 14 # output size
 args.factor = 5 # probsparse attn factor
 args.d_model = 512 # dimension of model
 args.n_heads = 8 # num of heads
