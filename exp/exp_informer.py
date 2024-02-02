@@ -122,6 +122,10 @@ class Exp_Informer(Exp_Basic):
             loss = criterion(pred.detach().cpu(), true.detach().cpu())
             total_loss.append(loss)
             plt.figure(figsize=(10, 5))
+            
+            true = true.cpu()
+            pred = pred.cpu()
+
             true = true.detach().numpy()
             pred = pred.detach().numpy()
 
