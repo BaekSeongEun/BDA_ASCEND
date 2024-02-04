@@ -178,7 +178,7 @@ class Exp_Informer(Exp_Basic):
                 plt.savefig(folder_path + file_name)
                 plt.close()
 
-        total_loss = np.average(total_loss.detach().cpu())
+        total_loss = np.average(total_loss.cpu())
         self.model.train()
         return total_loss
 
