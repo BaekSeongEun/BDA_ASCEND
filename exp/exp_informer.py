@@ -198,6 +198,7 @@ class Exp_Informer(Exp_Basic):
         
         model_optim = self._select_optimizer()
         criterion =  self._select_criterion(self.args.loss)
+        scheduler = torch.optim.lr_scheduler.StepLR(model_optim, step_size=10, gamma=0.1)
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
@@ -232,9 +233,11 @@ class Exp_Informer(Exp_Basic):
                         scaler.scale(loss).backward()
                         scaler.step(model_optim)
                         scaler.update()
+                        scheduler.step()
                     else:
                         loss.backward()
                         model_optim.step()
+                        scheduler.step()
             else:
                 for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(train_loader):
                     iter_count += 1
@@ -257,9 +260,11 @@ class Exp_Informer(Exp_Basic):
                         scaler.scale(loss).backward()
                         scaler.step(model_optim)
                         scaler.update()
+                        scheduler.step()
                     else:
                         loss.backward()
-                        model_optim.step()               
+                        model_optim.step()     
+                        scheduler.step()          
 
 #######################################################################################################
             print("Epoch: {} cost time: {}".format(epoch+1, time.time()-epoch_time))
@@ -274,8 +279,8 @@ class Exp_Informer(Exp_Basic):
                 print("Early stopping")
                 break
 
-            adjust_learning_rate(model_optim, epoch+1, self.args)
-            
+            # adjust_learning_rate(model_optim, epoch+1, self.args)
+        
         best_model_path = path+'/'+'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
         
