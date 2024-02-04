@@ -118,33 +118,61 @@ class Exp_Informer(Exp_Basic):
         total_loss = []
         folder_path = os.path.join(self.args.checkpoints + '/figure/')
         num_epoch = self.args.train_epochs
-        for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(vali_loader):
-            pred, true = self._process_one_batch(
-                vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch y는 true값을 얻기 위한 장치임.
-            loss = criterion(pred.detach().cpu(), true.detach().cpu())
-            total_loss.append(loss)
 
-            true = true.detach().cpu().numpy()
-            pred = pred.detach().cpu().numpy()
+        if self.args.inverse:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(vali_loader):
+                inverse_pred, pred, true = self._process_one_batch(
+                    vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch y는 true값을 얻기 위한 장치임.
+                loss = criterion(inverse_pred.detach().cpu(), true.detach().cpu())
+                total_loss.append(loss)
 
-            num_features = true.shape[2]
+                true = true.detach().cpu().numpy()
+                inverse_pred = inverse_pred.detach().cpu().numpy()
 
-            plt.figure(figsize=(30, 20))
+                num_features = true.shape[2]
 
-            for j in range(num_features):
-                file_name = f'/comparison{num_epoch}.png'
-                plt.subplot(5, 3, j+1)  # 5행 3열의 서브플롯 구성
-                plt.plot(true[:, 0, j], label='True')
-                plt.plot(pred[:, 0, j], label='Pred')
-                plt.xlabel('Time Step')
-                plt.ylabel('Value')
-                plt.title(f'Feature {j+1}')
-                plt.legend()
-                plt.tight_layout()
+                plt.figure(figsize=(30, 20))
 
-            plt.savefig(folder_path + file_name)
-            plt.close()
+                for j in range(num_features):
+                    file_name = f'/comparison{num_epoch}.png'
+                    plt.subplot(5, 3, j+1)  # 5행 3열의 서브플롯 구성
+                    plt.plot(true[:, 0, j], label='True')
+                    plt.plot(inverse_pred[:, 0, j], label='Pred')
+                    plt.xlabel('Time Step')
+                    plt.ylabel('Value')
+                    plt.title(f'Feature {j+1}')
+                    plt.legend()
+                    plt.tight_layout()
 
+                plt.savefig(folder_path + file_name)
+                plt.close()
+        else:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(vali_loader):
+                pred, true = self._process_one_batch(
+                    vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch y는 true값을 얻기 위한 장치임.
+                loss = criterion(pred.detach().cpu(), true.detach().cpu())
+                total_loss.append(loss)
+
+                true = true.detach().cpu().numpy()
+                pred = pred.detach().cpu().numpy()
+
+                num_features = true.shape[2]
+
+                plt.figure(figsize=(30, 20))
+
+                for j in range(num_features):
+                    file_name = f'/comparison{num_epoch}.png'
+                    plt.subplot(5, 3, j+1)  # 5행 3열의 서브플롯 구성
+                    plt.plot(true[:, 0, j], label='True')
+                    plt.plot(pred[:, 0, j], label='Pred')
+                    plt.xlabel('Time Step')
+                    plt.ylabel('Value')
+                    plt.title(f'Feature {j+1}')
+                    plt.legend()
+                    plt.tight_layout()
+
+                plt.savefig(folder_path + file_name)
+                plt.close()
 
         total_loss = np.average(total_loss)
         self.model.train()
