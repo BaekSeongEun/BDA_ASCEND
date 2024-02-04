@@ -112,7 +112,7 @@ class Exp_Informer(Exp_Basic):
     
     def _select_criterion(self, loss_name):
         if loss_name.lower() == 'mape':
-            criterion = MeanAbsolutePercentageError().to(self.device)
+            criterion = MeanAbsolutePercentageError()
         else:
             criterion =  nn.MSELoss() # MAPE 사용하고 싶으면 criterion도 변경해야 함.
         return criterion
