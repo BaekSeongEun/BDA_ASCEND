@@ -198,7 +198,7 @@ class Exp_Informer(Exp_Basic):
         
         model_optim = self._select_optimizer()
         criterion =  self._select_criterion(self.args.loss)
-        scheduler = torch.optim.lr_scheduler.StepLR(model_optim, step_size=10, gamma=0.1)
+        scheduler = torch.optim.lr_scheduler.StepLR(model_optim, step_size=5, gamma=0.1)
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
