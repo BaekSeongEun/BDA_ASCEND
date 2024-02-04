@@ -176,31 +176,60 @@ class Exp_Informer(Exp_Basic):
             
             self.model.train()
             epoch_time = time.time()
-            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(train_loader):
-                iter_count += 1
-                
-                model_optim.zero_grad()
-                pred, true = self._process_one_batch(
-                    train_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
-                loss = criterion(pred, true)
-                train_loss.append(loss.item())
-                
-                if (i+1) % 100==0:
-                    print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
-                    speed = (time.time()-time_now)/iter_count
-                    left_time = speed*((self.args.train_epochs - epoch)*train_steps - i)
-                    print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
-                    iter_count = 0
-                    time_now = time.time()
-                
-                if self.args.use_amp:
-                    scaler.scale(loss).backward()
-                    scaler.step(model_optim)
-                    scaler.update()
-                else:
-                    loss.backward()
-                    model_optim.step()
+##########################################training##########################################################
 
+            if self.args.inverse:
+                for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(train_loader):
+                    iter_count += 1
+                    
+                    model_optim.zero_grad()
+                    inverse_pred, pred, true = self._process_one_batch(
+                        train_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
+                    loss = criterion(inverse_pred, true)
+                    train_loss.append(loss.item())
+                    
+                    if (i+1) % 100==0:
+                        print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
+                        speed = (time.time()-time_now)/iter_count
+                        left_time = speed*((self.args.train_epochs - epoch)*train_steps - i)
+                        print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
+                        iter_count = 0
+                        time_now = time.time()
+                    
+                    if self.args.use_amp:
+                        scaler.scale(loss).backward()
+                        scaler.step(model_optim)
+                        scaler.update()
+                    else:
+                        loss.backward()
+                        model_optim.step()
+            else:
+                for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(train_loader):
+                    iter_count += 1
+                    
+                    model_optim.zero_grad()
+                    pred, true = self._process_one_batch(
+                        train_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
+                    loss = criterion(pred, true)
+                    train_loss.append(loss.item())
+                    
+                    if (i+1) % 100==0:
+                        print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
+                        speed = (time.time()-time_now)/iter_count
+                        left_time = speed*((self.args.train_epochs - epoch)*train_steps - i)
+                        print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
+                        iter_count = 0
+                        time_now = time.time()
+                    
+                    if self.args.use_amp:
+                        scaler.scale(loss).backward()
+                        scaler.step(model_optim)
+                        scaler.update()
+                    else:
+                        loss.backward()
+                        model_optim.step()               
+
+#######################################################################################################
             print("Epoch: {} cost time: {}".format(epoch+1, time.time()-epoch_time))
             train_loss = np.average(train_loss)
             vali_loss = self.vali(vali_data, vali_loader, criterion)
@@ -227,12 +256,17 @@ class Exp_Informer(Exp_Basic):
         
         preds = []
         trues = []
-        
-        for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(test_loader):
-            pred, true = self._process_one_batch(
-                test_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
-            preds.append(pred.detach().cpu().numpy())
-            trues.append(true.detach().cpu().numpy())
+
+        if self.args.inverse:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(test_loader): # batch y는 true값을 얻기 위한 장치임.        
+                inverse_pred, pred, true = self._process_one_batch(
+                    test_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
+                preds.append(inverse_pred.detach().cpu().numpy())
+        else:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(test_loader): 
+                pred, true = self._process_one_batch(
+                    test_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch_y가 batch_x보다 1개 instance를 더 받을 수 있음.
+                preds.append(pred.detach().cpu().numpy())
 
         preds = np.array(preds)
         trues = np.array(trues)
@@ -280,11 +314,18 @@ class Exp_Informer(Exp_Basic):
         self.model.eval()
         
         preds = []
-        
-        for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader):
-            pred, true = self._process_one_batch(
-                pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
-            preds.append(pred.detach().cpu().numpy())
+        if self.args.inverse:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): # batch y는 true값을 얻기 위한 장치임.        
+                inverse_pred, pred, true = self._process_one_batch(
+                    pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
+                pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy()
+                preds.append(inverse_pred.detach().cpu().numpy())
+        else:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): 
+                pred, true = self._process_one_batch(
+                    pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch_y가 batch_x보다 1개 instance를 더 받을 수 있음.
+                pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy() # 값 업데이트
+                preds.append(pred.detach().cpu().numpy())
 
         preds = np.array(preds)
         preds = preds.reshape(-1, preds.shape[-2], preds.shape[-1])
@@ -315,13 +356,15 @@ class Exp_Informer(Exp_Basic):
         preds = []
         trues = []
 
-        for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): # batch y는 true값을 얻기 위한 장치임.
-            if self.args.inverse:
+        if self.args.inverse:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): # batch y는 true값을 얻기 위한 장치임.        
                 inverse_pred, pred, true = self._process_one_batch(
                     pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
                 pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy()
                 preds.append(inverse_pred.detach().cpu().numpy())
-            else:
+                trues.append(true.detach().cpu().numpy())
+        else:
+            for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): 
                 pred, true = self._process_one_batch(
                     pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch_y가 batch_x보다 1개 instance를 더 받을 수 있음.
                 pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy() # 값 업데이트

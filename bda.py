@@ -18,9 +18,9 @@ args.checkpoints = 'C:/Users/user/Informer2020/check/' # location of model check
 
 ## len에 대한 정리 : seq_len과 label_len, pred_len은 20,20,1로 훈련 시에 사용한다. 이 후에, prediction할 때, 1개의 값이 도출되면 원래 데이터에 이업
 
-args.seq_len = 20 # input sequence length of Informer encoder, 40으로 설정하는 이유는 궁극적인 목표 자체가 20개의 데이터로 1개의 데이터를 만들어서 총 20개의 내가 예측한 데이터를 얻는 것이 목적이므로.
+args.seq_len = 40 # input sequence length of Informer encoder, 40으로 설정하는 이유는 궁극적인 목표 자체가 20개의 데이터로 1개의 데이터를 만들어서 총 20개의 내가 예측한 데이터를 얻는 것이 목적이므로.
 args.label_len = 20 # start token length of Informer decoder, label_len만큼 이전 데이터를 참고
-args.pred_len = 1 # prediction sequence length, 예측하는 길이 / 만약에 20이라고 설정해두면, 20개의 sequence로 뒤의 20개 전체의 pattern을 학습하는건가? 그러면 차라리 1개씩 하는게 낫나?
+args.pred_len = 20 # prediction sequence length, 예측하는 길이 / 만약에 20이라고 설정해두면, 20개의 sequence로 뒤의 20개 전체의 pattern을 학습하는건가? 그러면 차라리 1개씩 하는게 낫나?
 # pred는 1로 하는 게 맞다. 
 # Informer decoder input: concat[start token series(label_len), zero padding series(pred_len)]
 # decoder는 output의 결과가 [seq_len - label_len:seq_len + pred_len]으로 나온다.
