@@ -83,7 +83,7 @@ class Exp_Informer(Exp_Basic):
         elif flag=='pred_features':
             shuffle_flag = False; drop_last = True; batch_size = 1; freq=args.freq ###### batch를 넣어서 볼까?
         else:
-            shuffle_flag = True; drop_last = True; batch_size = args.batch_size; freq=args.freq
+            shuffle_flag = False; drop_last = True; batch_size = args.batch_size; freq=args.freq
         data_set = Data(
             root_path=args.root_path,
             data_path=args.data_path,
