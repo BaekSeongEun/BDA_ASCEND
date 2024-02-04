@@ -178,7 +178,7 @@ class Exp_Informer(Exp_Basic):
                 plt.savefig(folder_path + file_name)
                 plt.close()
 
-        total_loss = np.average(total_loss.cpu())
+        total_loss = np.average(total_loss)
         self.model.train()
         return total_loss
 
@@ -217,7 +217,7 @@ class Exp_Informer(Exp_Basic):
                     model_optim.zero_grad()
                     inverse_pred, pred, true = self._process_one_batch(
                         train_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
-                    loss = criterion(inverse_pred, true)
+                    loss = criterion(inverse_pred.detach().cpu(), true.detach().cpu())
                     train_loss.append(loss.item())
                     
                     if (i+1) % 100==0:
@@ -242,7 +242,7 @@ class Exp_Informer(Exp_Basic):
                     model_optim.zero_grad()
                     pred, true = self._process_one_batch(
                         train_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
-                    loss = criterion(pred, true)
+                    loss = criterion(pred.detach().cpu(), true.detach().cpu())
                     train_loss.append(loss.item())
                     
                     if (i+1) % 100==0:
