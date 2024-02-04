@@ -110,7 +110,7 @@ class Exp_Informer(Exp_Basic):
         return model_optim
     
     def _select_criterion(self):
-        criterion =  nn.MSELoss()
+        criterion =  nn.MSELoss() # MAPE 사용하고 싶으면 criterion도 변경해야 함.
         return criterion
 
     def vali(self, vali_data, vali_loader, criterion):
@@ -316,11 +316,17 @@ class Exp_Informer(Exp_Basic):
         trues = []
 
         for i, (batch_x,batch_y,batch_x_mark,batch_y_mark) in enumerate(pred_loader): # batch y는 true값을 얻기 위한 장치임.
-            pred, true = self._process_one_batch(
-                pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch_y가 batch_x보다 1개 instance를 더 받을 수 있음.
-            pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy() # 값 업데이트
-            preds.append(pred.detach().cpu().numpy())
-            trues.append(true.detach().cpu().numpy())
+            if self.args.inverse:
+                inverse_pred, pred, true = self._process_one_batch(
+                    pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
+                pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy()
+                preds.append(inverse_pred.detach().cpu().numpy())
+            else:
+                pred, true = self._process_one_batch(
+                    pred_data, batch_x, batch_y, batch_x_mark, batch_y_mark) # batch_y가 batch_x보다 1개 instance를 더 받을 수 있음.
+                pred_loader.dataset.data_x[np.where(np.isnan(pred_loader.dataset.data_x).any(axis=1))[0][0]] = pred.detach().cpu().numpy() # 값 업데이트
+                preds.append(pred.detach().cpu().numpy())
+                trues.append(true.detach().cpu().numpy())
         
         # result save
         folder_path = './results/' + setting +'/'
@@ -356,9 +362,12 @@ class Exp_Informer(Exp_Basic):
                 outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
             else:
                 outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
-        if self.args.inverse:
-            outputs = dataset_object.inverse_transform(outputs)
+        if True : #self.args.inverse:
+            output = dataset_object.inverse_transform(outputs)
         f_dim = -1 if self.args.features=='MS' else 0
         batch_y = batch_y[:,-self.args.pred_len:,f_dim:].to(self.device) # 평가를 위해서 prediction한 값과 동일한 time-stamp의 값으로 이동
-
-        return outputs, batch_y
+        
+        if output is None or 'output' not in locals(): # 만약 inverse하지 않는다면
+            return outputs, batch_y
+        else:
+            return output, outputs, batch_y # non-scale, scale, true
