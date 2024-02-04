@@ -61,7 +61,7 @@ class Dataset_ETT_hour(Dataset):
 
         if self.scale:
             train_data = df_data[border1s:border2s]
-            if np.isnan(train_data.values):
+            if np.isnan(train_data.values).any():
                 self.scaler.fit(train_data.values[~np.isnan(train_data.values)]) # NaN값 제거 해주기 위해 scaler 조정
                 data = self.scaler.transform(df_data.values)
             else:
