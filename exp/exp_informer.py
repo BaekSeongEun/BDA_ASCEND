@@ -183,7 +183,7 @@ class Exp_Informer(Exp_Basic):
         vali_data, vali_loader = self._get_data(flag = 'val')
         test_data, test_loader = self._get_data(flag = 'test')
 
-        path = os.path.join(self.args.checkpoints, setting)
+        path = self.args.checkpoints
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -304,7 +304,7 @@ class Exp_Informer(Exp_Basic):
         print('test shape:', preds.shape, trues.shape)
 
         # result save
-        folder_path = './results/' + setting +'/'
+        folder_path = './results/' +'/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
@@ -335,7 +335,7 @@ class Exp_Informer(Exp_Basic):
         pred_data, pred_loader = self._get_data(flag='test')
         
         if load:
-            path = os.path.join(self.args.checkpoints, setting)
+            path = self.args.checkpoints
             best_model_path = path+'/'+'checkpoint.pth'
             self.model.load_state_dict(torch.load(best_model_path))
 
@@ -359,7 +359,7 @@ class Exp_Informer(Exp_Basic):
         preds = preds.reshape(-1, preds.shape[-2], preds.shape[-1])
         
         # result save
-        folder_path = './results/' + setting +'/'
+        folder_path = './results/' +'/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         
@@ -371,7 +371,7 @@ class Exp_Informer(Exp_Basic):
         pred_data, pred_loader = self._get_data(flag='pred_features')
         
         if load:
-            path = os.path.join(self.args.checkpoints, setting)
+            path = self.args.checkpoints
             best_model_path = path+'/'+'checkpoint.pth'
             print(best_model_path)
             self.model.load_state_dict(torch.load(best_model_path))
